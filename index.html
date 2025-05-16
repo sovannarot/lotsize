@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forex Trading Calculator</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group .entry {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+      }
+      .form-group .entry input {
+        width: 40%;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      canvas {
+        margin-top: 20px;
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="forex.html" style="text-decoration: none; color: inherit">
+      <h1>Forex Trading Calculator</h1>
+    </a>
+    <div>
+      <div class="form-group">
+        <div class="entry">
+          <label for="open-price">Open Price</label>
+          <input
+            type="number"
+            min="3000"
+            id="open-price-1"
+            placeholder="Enter open price"
+          />
+          <label for="lot-size">Lot Size</label>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            id="lot-size-1"
+            placeholder="Enter lot size"
+          />
+        </div>
+        <div class="entry">
+          <label for="open-price">Open Price</label>
+          <input
+            type="number"
+            min="3000"
+            id="open-price-2"
+            placeholder="Enter open price"
+          />
+          <label for="lot-size">Lot Size</label>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            id="lot-size-2"
+            placeholder="Enter lot size"
+          />
+        </div>
+        <div class="entry">
+          <label for="open-price">Open Price</label>
+          <input
+            type="number"
+            min="3000"
+            id="open-price-3"
+            placeholder="Enter open price"
+          />
+          <label for="lot-size">Lot Size</label>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            id="lot-size-3"
+            placeholder="Enter lot size"
+          />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="buy-sell">Buy Or Sell</label>
+        <select id="buy-sell">
+          <option value="1">Buy</option>
+          <option value="2">Sell</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="desired-profit">Desired Profit</label>
+        <input
+          type="number"
+          id="desired-profit"
+          placeholder="Enter desired profit"
+          min="0"
+        />
+      </div>
+      <button id="calculate">Calculate</button>
+    </div>
+    <canvas id="chart" width="400" height="200"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      let chartInstance = null; // To store the chart instance
+      const calculateButton = document.getElementById("calculate");
+      const chartCanvas = document.getElementById("chart");
+
+      calculateButton.addEventListener("click", () => {
+        const lotSize1 =
+          parseFloat(document.getElementById("lot-size-1").value) || 0;
+        const openPrice1 =
+          parseFloat(document.getElementById("open-price-1").value) || 0;
+        const lotSize2 =
+          parseFloat(document.getElementById("lot-size-2").value) || 0;
+        const openPrice2 =
+          parseFloat(document.getElementById("open-price-2").value) || 0;
+        const lotSize3 =
+          parseFloat(document.getElementById("lot-size-3").value) || 0;
+        const openPrice3 =
+          parseFloat(document.getElementById("open-price-3").value) || 0;
+        const desiredProfit = parseFloat(
+          document.getElementById("desired-profit").value
+        );
+        const buySell =
+          parseFloat(document.getElementById("buy-sell").value) || 1;
+
+        if (lotSize1 <= 0 || openPrice1 <= 0 || desiredProfit <= 0) {
+          alert(
+            "Please enter valid values for lot size, open price, and desired profit."
+          );
+          return;
+        }
+        const tpcalc =
+          buySell === 1
+            ? (desiredProfit +
+                100 * lotSize1 * openPrice1 +
+                100 * lotSize2 * openPrice2 +
+                100 * lotSize3 * openPrice3) /
+              (100 * lotSize1 + 100 * lotSize2 + 100 * lotSize3)
+            : (100 * lotSize1 * openPrice1 +
+                100 * lotSize2 * openPrice2 +
+                100 * lotSize3 * openPrice3 -
+                desiredProfit) /
+              (100 * lotSize1 + 100 * lotSize2 + 100 * lotSize3);
+
+        const tp = Math.ceil(tpcalc * 1000) / 1000; // Round to 3 decimal places
+        // Destroy the previous chart instance if it exists
+        if (chartInstance) {
+          chartInstance.destroy();
+        }
+        const ctx = chartCanvas.getContext("2d");
+        let labels = ["Open Price1"];
+        let datas = [openPrice1];
+        if (openPrice2 != 0) {
+          labels.push("Open Price2");
+          datas.push(openPrice2);
+        } else {
+          labels.push();
+          datas.push();
+        }
+        if (openPrice3 != 0) {
+          labels.push("Open Price3");
+          datas.push(openPrice3);
+        } else {
+          labels.push();
+          datas.push();
+        }
+        labels.push("Take Profit (TP)");
+        datas.push(tp);
+        console.log(labels);
+        console.log(datas);
+        chartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Price Levels",
+                data: datas,
+                backgroundColor: [
+                  "rgba(75, 192, 192, 0.2)",
+                  "rgba(54, 162, 235, 0.2)",
+                  "rgba(255, 99, 132, 0.2)",
+                  "rgba(255, 206, 86, 0.2)",
+                  "rgba(153, 102, 255, 0.2)",
+                ],
+                borderColor: [
+                  "rgba(75, 192, 192, 1)",
+                  "rgba(54, 162, 235, 1)",
+                  "rgba(255, 99, 132, 1)",
+                  "rgba(255, 206, 86, 1)",
+                  "rgba(153, 102, 255, 1)",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      });
+    </script>
+  </body>
+</html>

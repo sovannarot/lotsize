@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forex Trading Calculator</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group .entry {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+      }
+      .form-group .entry input {
+        width: 40%;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      canvas {
+        margin-top: 20px;
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="index.html" style="text-decoration: none; color: inherit">
+      <h1>Forex Trading Calculator</h1>
+    </a>
+    <div>
+      <div class="form-group">
+        <div class="entry">
+          <label for="open-price">Open Price</label>
+          <input
+            type="number"
+            min="3000"
+            id="open-price"
+            placeholder="Enter open price"
+          />
+          <label for="lot-size">Lot Size</label>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            id="lot-size"
+            placeholder="Enter lot size"
+          />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="buy-sell">Buy Or Sell</label>
+        <select id="buy-sell">
+          <option value="1">Buy</option>
+          <option value="2">Sell</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="stoploss">Stop Loss(SL)</label>
+        <input
+          type="number"
+          id="stoploss"
+          placeholder="Enter Stop Loss"
+          min="3000"
+        />
+      </div>
+      <div class="form-group">
+        <label for="risk">Risk/Reward Ratio</label>
+        <select id="ratio">
+          <option value="1">1/1</option>
+          <option value="2">1/2</option>
+          <option value="3">1/3</option>
+          <option value="4">1/4</option>
+          <option value="5">1/5</option>
+          <option value="6">1/6</option>
+          <option value="7">1/7</option>
+          <option value="8">1/8</option>
+          <option value="9">1/9</option>
+          <option value="10">1/10</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="desired-profit">Desired Profit</label>
+        <h1 id="desired-profit">0$</h1>
+      </div>
+      <div class="form-group">
+        <label for="affordloss">Afford Loss</label>
+        <h1 id="affordloss">0$</h1>
+      </div>
+      <button id="calculate">Calculate</button>
+    </div>
+    <canvas id="chart" width="400" height="200"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      let chartInstance = null; // To store the chart instance
+      const calculateButton = document.getElementById("calculate");
+      const chartCanvas = document.getElementById("chart");
+
+      calculateButton.addEventListener("click", () => {
+        const lotSize =
+          parseFloat(document.getElementById("lot-size").value) || 0;
+        const openPrice =
+          parseFloat(document.getElementById("open-price").value) || 0;
+        const ratio = parseFloat(document.getElementById("ratio").value) || 1;
+        const desiredProfit = document.getElementById("desired-profit");
+        const affordLoss = document.getElementById("affordloss");
+        const buySell =
+          parseFloat(document.getElementById("buy-sell").value) || 0;
+        const stopLoss =
+          parseFloat(document.getElementById("stoploss").value) || 0;
+        if (lotSize <= 0 || openPrice <= 0 || stopLoss <= 0) {
+          alert(
+            "Please enter valid values for lot size, open price, and stoploss."
+          );
+          return;
+        }
+        const tpcalc =
+          buySell === 1
+            ? openPrice + (openPrice - stopLoss) * ratio
+            : openPrice - (stopLoss - openPrice) * ratio;
+        const tp = Math.ceil(tpcalc * 1000) / 1000;
+        if (chartInstance) {
+          chartInstance.destroy();
+        }
+        const ctx = chartCanvas.getContext("2d");
+        chartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["Stop Loss(SL)", "Open Price", "Take Profit(TP)"],
+            datasets: [
+              {
+                label: "Price Levels",
+                data: [stopLoss, openPrice, tp],
+                backgroundColor: [
+                  "rgba(75, 192, 192, 0.2)",
+                  "rgba(54, 162, 235, 0.2)",
+                  "rgba(255, 99, 132, 0.2)",
+                ],
+                borderColor: [
+                  "rgba(75, 192, 192, 1)",
+                  "rgba(54, 162, 235, 1)",
+                  "rgba(255, 99, 132, 1)",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+        const profit =
+          Math.trunc(lotSize * Math.abs(tp - openPrice) * 100 * 100) / 100;
+        const risk =
+          Math.trunc(lotSize * Math.abs(stopLoss - openPrice) * 100 * 100) /
+          100;
+        desiredProfit.innerHTML = `${profit.toFixed(2)}$`;
+        affordLoss.innerHTML = `${risk.toFixed(2)}$`;
+      });
+    </script>
+  </body>
+</html>
