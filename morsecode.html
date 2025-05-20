@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Morse Code Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    #morseOutput, #textOutput {
+      font-size: 1.5em;
+      margin: 20px 0;
+    }
+    button {
+      font-size: 1.2em;
+      margin: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Morse Code to Text</h1>
+
+  <div>
+    <button onclick="addSymbol('.')">Dot (.)</button>
+    <button onclick="addSymbol('-')">Dash (-)</button>
+    <button onclick="space()">Space (Letter Gap)</button>
+    <button onclick="convertMorse()">Convert</button>
+    <button onclick="clearAll()">Clear</button>
+  </div>
+
+  <div id="morseOutput">Morse: </div>
+  <div id="textOutput">Text: </div>
+
+  <script>
+    const morseToText = {
+      '.-': 'A', '-...': 'B', '-.-.': 'C', '-..': 'D', '.': 'E',
+      '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': 'J',
+      '-.-': 'K', '.-..': 'L', '--': 'M', '-.': 'N', '---': 'O',
+      '.--.': 'P', '--.-': 'Q', '.-.': 'R', '...': 'S', '-': 'T',
+      '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X', '-.--': 'Y',
+      '--..': 'Z', '-----': '0', '.----': '1', '..---': '2',
+      '...--': '3', '....-': '4', '.....': '5', '-....': '6',
+      '--...': '7', '---..': '8', '----.': '9'
+    };
+
+    let morseInput = [];
+
+    function addSymbol(symbol) {
+      if (morseInput.length === 0 || morseInput[morseInput.length - 1] === ' ') {
+        morseInput.push(symbol);
+      } else {
+        morseInput[morseInput.length - 1] += symbol;
+      }
+      updateDisplay();
+    }
+
+    function space() {
+      morseInput.push(' ');
+      updateDisplay();
+    }
+
+    function convertMorse() {
+      const text = morseInput.map(code => morseToText[code] || '?').join('');
+      document.getElementById('textOutput').innerText = "Text: " + text;
+    }
+
+    function clearAll() {
+      morseInput = [];
+      updateDisplay();
+      document.getElementById('textOutput').innerText = "Text: ";
+    }
+
+    function updateDisplay() {
+      document.getElementById('morseOutput').innerText = "Morse: " + morseInput.join(' ');
+    }
+  </script>
+
+</body>
+</html>
